@@ -1,64 +1,60 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Dynamic;
 using System.Linq;
+using System.Text;
 
 namespace BinaryTree
 {
-    class Node
+    internal class Node
     {
-        public Node right { get; } // branche de droite
-        public Node left { get; } // branche de gauche
+        public Node Right { get; } // branche de droite
+        public Node Left { get; } // branche de gauche
 
-        public char letter { get; } // Si feuille
+        public char Letter { get; } // Si feuille
 
-        public string signature { get; set; } // Code binaire selon Huffman
-        public int weight { get; } // poids du noeud
-        public int depth { get; set; } // profondeur dans l'arbre
+        public string Signature { get; set; } // Code binaire selon Huffman
+        public int Weight { get; } // poids du noeud
 
         // Constructeur noeud
-        public Node(Node right, Node left,  int weight)
+        public Node(Node right, Node left, int weight)
         {
-            this.right = right;
-            this.left = left;
-            this.weight = weight;
+            Right = right;
+            Left = left;
+            Weight = weight;
         }
 
         // Constructeur feuille
         public Node(char letter, int weight)
         {
-            this.letter = letter;
-            this.weight = weight;
+            Letter = letter;
+            Weight = weight;
         }
 
         // Fonction de lecture de l'arbre de manière récursive
         // et inscription dans le tableau de correspondance
         public void RecursiveReading()
         {
-            if (this.letter == '\0')
+            if (Letter == '\0')
             {
-                this.left.signature = this.signature;
-                this.left.signature += 0; // La signature du noeud courant avec un 0 en plus
-                this.left.depth = this.depth + 1; // Ajouter la profondeur
-                this.right.signature = this.signature;
-                this.right.signature += 1; // La signature du noeud courant avec un 1 en plus
-                this.right.depth = this.depth + 1; // Ajouter la profondeur
-                this.left.RecursiveReading();
-                this.right.RecursiveReading();
+                // Parcourt les branches de droite
+                Left.Signature = Signature + "0"; // La signature du noeud courant avec un 0 en plus
+                Left.RecursiveReading();
+                
+                // Parcourt les branches de gauche
+                Right.Signature = Signature + "1"; // La signature du noeud courant avec un 1 en plus
+                Right.RecursiveReading();
             }
             else
             {
                 // Écrit la correspondance dans la table
-                BinaryTree.addressMappingTable[signature] = letter;
+                BinaryTree.AddressMappingTable[Signature] = Letter;
             }
         }
     }
 
-    class BinaryTree
+    internal class BinaryTree
     {
-        public static Dictionary<string, char> addressMappingTable = new Dictionary<string, char>(); // Tableau de correspondance
+        public static Dictionary<string, char> AddressMappingTable = new Dictionary<string, char>(); // Tableau de correspondance
 
         public List<Node> Nodes; // Liste de noeuds
 
@@ -66,30 +62,28 @@ namespace BinaryTree
         public void SortNodesByWeight()
         {
             Nodes.Sort(
-                (n1, n2) => n1.weight.CompareTo(n2.weight)
+                (n1, n2) => n1.Weight.CompareTo(n2.Weight)
             );
         }
 
-        // Parcourt l'arbre de manière ittérative
-        public void ItterativeReading()
+        // Parcourt l'arbre de manière itérative
+        public void IterativeReading()
         {
-            List<Node> nodeList = new List<Node>(); // Faire une liste de noeuds à traiter
-
-            nodeList.Add(Nodes[0]);
+            var nodeList = new List<Node> {Nodes[0]}; // Faire une liste de noeuds à traiter
 
             while (nodeList.Count > 0)
             {
-                if (nodeList[0].letter != '\0') // Tester si c'est une feuille
+                if (nodeList[0].Letter != '\0') // Tester si c'est une feuille
                 {
-                    addressMappingTable[nodeList[0].signature] = nodeList[0].letter;
+                    AddressMappingTable[nodeList[0].Signature] = nodeList[0].Letter;
                 }
                 else
                 {
-                    nodeList[0].right.signature = nodeList[0].signature + "1";
-                    nodeList.Add(nodeList[0].right);
+                    nodeList[0].Right.Signature = nodeList[0].Signature + "1";
+                    nodeList.Add(nodeList[0].Right);
 
-                    nodeList[0].left.signature = nodeList[0].signature + "0";
-                    nodeList.Add(nodeList[0].left);
+                    nodeList[0].Left.Signature = nodeList[0].Signature + "0";
+                    nodeList.Add(nodeList[0].Left);
                 }
                 nodeList.RemoveAt(0); // Supprimer le noeud traité
             }
@@ -100,9 +94,9 @@ namespace BinaryTree
         {
             Nodes.ForEach(delegate(Node node)
             {
-                Console.Write(node.letter);
+                Console.Write(node.Letter);
                 Console.Write("    ");
-                Console.WriteLine(node.weight);
+                Console.WriteLine(node.Weight);
             });
             Console.WriteLine(Nodes.Count);
             Console.WriteLine("-----------------");
@@ -111,27 +105,26 @@ namespace BinaryTree
         // Affiche la table de correpondance dans la console
         public void PrintMappingTable()
         {
-            foreach (var letter in addressMappingTable)
+            foreach (var letter in AddressMappingTable)
             {
                 Console.WriteLine("Human = {0}    Huffman = {1}", letter.Value, letter.Key);
             }
         }
     }
 
-    internal class Program
+    class Utils
     {
-
         // Fonction de décodage du code binaire
-        private static string HuffmanDecode(string encodedMessage)
+        public static string HuffmanDecode(string encodedMessage, Dictionary<string, char> mappingTable)
         {
             var decodedMessage = "";
             var length = 1; // nombre de bits évalués
-            while(encodedMessage.Length > 0)
+            while (encodedMessage.Length > 0)
             {
                 var evaluatedCode = encodedMessage.Substring(0, length); // code évalué
 
                 // Vérifier si une lettre correspond
-                foreach (var letter in BinaryTree.addressMappingTable)
+                foreach (var letter in mappingTable)
                 {
                     if (letter.Key == evaluatedCode)
                     {
@@ -140,11 +133,61 @@ namespace BinaryTree
                         length = 1;
                     }
                 }
-                length++; // Rajouter un bit
+                length++; // Rajouter un bit à la taille
             }
             return decodedMessage;
         }
+        
+        // Encoder et afficher le message encodé
+        public static string EncodeAndPrintEncodedMessage(char[] inputArray)
+        {
+            var encodedMessage = "";
+            
+            foreach (var letter in inputArray)
+            {
+                encodedMessage += BinaryTree.AddressMappingTable.FirstOrDefault(x => x.Value == letter).Key;
+            }
+            
+            Console.WriteLine("Encoded message:");
+            Console.WriteLine(encodedMessage);
+            Console.WriteLine("Number of bits: {0}", encodedMessage.Length);
 
+            Console.WriteLine("---------------------------------------------------");
+
+            return encodedMessage;
+        }
+        
+        // Décoder et afficher le message décodé
+        public static string DecodeAndPrintDecodedMessage(string encodedMessage, Dictionary<string, char> mappingTable)
+        {
+            Console.WriteLine("Decoded message:");
+            
+            string decodedMessage = HuffmanDecode(encodedMessage, BinaryTree.AddressMappingTable);
+            Console.WriteLine(decodedMessage);
+            Console.WriteLine("Number of bits: {0}", Encoding.UTF8.GetByteCount(decodedMessage));
+            
+            Console.WriteLine("---------------------------------------------------");
+
+            return decodedMessage;
+        }
+        
+        // Calculer et afficher la taille compressée en % de la taille d'origine
+        public static double CalculateAndPrintCompressionRatio(string encodedMessage, string decodedMessage)
+        {
+            double encodedMessLength = encodedMessage.Length;
+            double decodedMessLength = Encoding.UTF8.GetByteCount(decodedMessage) * 8;
+
+            double ratio = encodedMessLength / decodedMessLength * 100;
+            
+            Console.WriteLine("Original length in bits: {0}, After encoding: {1}", decodedMessLength, encodedMessLength);
+            Console.WriteLine("Ratio: {0}%", Math.Round(ratio, 2));
+
+            return ratio;
+        }
+    }
+
+    internal class Program
+    {
         public static void Main(string[] args)
         {
             // Message d'origine
@@ -178,12 +221,12 @@ namespace BinaryTree
             // Créer les nouveaux noeuds
             while (binaryTree.Nodes.Count > 1)
             {
-                var weight = binaryTree.Nodes[0].weight + binaryTree.Nodes[1].weight;
+                var weight = binaryTree.Nodes[0].Weight + binaryTree.Nodes[1].Weight;
                 binaryTree.Nodes.Add(new Node(binaryTree.Nodes[0], binaryTree.Nodes[1], weight));
 
                 // Debug
-                Console.WriteLine("min1:" + binaryTree.Nodes[0].letter);
-                Console.WriteLine("min2:" + binaryTree.Nodes[1].letter);
+                //Console.WriteLine("min1:" + binaryTree.Nodes[0].letter);
+                //Console.WriteLine("min2:" + binaryTree.Nodes[1].letter);
 
                 // Supprimer les noeuds assemblés
                 binaryTree.Nodes.Remove(binaryTree.Nodes[1]);
@@ -195,31 +238,31 @@ namespace BinaryTree
             }
 
             // Afficher poids total
-            Console.WriteLine(binaryTree.Nodes[0].weight);
+            Console.WriteLine(binaryTree.Nodes[0].Weight);
 
             // Créer et afficher le tableau de correspondance
             //binaryTree.Nodes[0].RecursiveReading();
-            binaryTree.ItterativeReading();
+            binaryTree.IterativeReading();
 
-            if (BinaryTree.addressMappingTable.Count == 0)
+            if (BinaryTree.AddressMappingTable.Count == 0)
             {
-                Console.WriteLine("ALERT");
+                Console.WriteLine("Nothing has been written in mapping table");
             }
             else
             {
                 binaryTree.PrintMappingTable();
             }
 
+            Console.WriteLine("---------------------------------------------------");
+
             // Encoder et afficher le message d'origine encodé
-            var compressedMessage = "";
-            foreach (var letter in inputArray)
-            {
-                compressedMessage += BinaryTree.addressMappingTable.FirstOrDefault(x => x.Value == letter).Key;
-            }
-            Console.WriteLine(compressedMessage);
+            var encodedMessage = Utils.EncodeAndPrintEncodedMessage(inputArray);
 
             // Décoder et afficher le message d'origine
-            Console.WriteLine(HuffmanDecode(compressedMessage));
+            var decodedMessage = Utils.DecodeAndPrintDecodedMessage(encodedMessage, BinaryTree.AddressMappingTable);
+            
+            // Calculer et afficher le taux de compression
+            Utils.CalculateAndPrintCompressionRatio(encodedMessage, decodedMessage);
         }
     }
 }
