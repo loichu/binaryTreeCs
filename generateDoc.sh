@@ -31,6 +31,7 @@ pandoc binaryTreeCs.wiki/*.md \
     -s \
     --highlight-style zenburn \
     -t html5 \
+    --css ../gl.css \
     -o ../doc_from_html.pdf
     
 cd ..
