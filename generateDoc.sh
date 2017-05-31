@@ -9,6 +9,10 @@ if [ -z $(which pdflatex) ]; then
     sudo apt install -y texlive-full
 fi
 
+if [ -z $(which wkhtmltopdf) ]; then
+    sudo apt install -y wkhtmltopdf
+fi
+
 mkdir tmp
 cd tmp
 
@@ -22,6 +26,14 @@ pandoc binaryTreeCs.wiki/*.md \
        -V geometry:margin=1cm \
        -o ../doc.pdf
 
+# Generate PDF from HTML with wkhtmltopdf
+pandoc binaryTreeCs.wiki/*.md \
+    -s \
+    --highlight-style zenburn \
+    -t html5 \
+    --css ../gl.css \
+    -o ../doc_from_html.pdf
+    
 cd ..
 rm -rf tmp
 xpdf doc.pdf
