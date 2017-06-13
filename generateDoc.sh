@@ -33,7 +33,8 @@ pandoc binaryTreeCs.wiki/*.md \
     -t html5 \
     --css ../gl.css \
     -o ../doc_from_html.pdf
-    
+
 cd ..
 rm -rf tmp
-xpdf doc.pdf
+xpdf doc.pdf &
+xpdf doc_from_html.pdf &
